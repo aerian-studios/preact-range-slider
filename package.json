@@ -37,18 +37,18 @@
   },
   "homepage": "https://github.com/m18ru/preact-range-slider#readme",
   "peerDependencies": {
-    "preact": "^8.2.5",
+    "preact": "*",
     "tslib": "^1.8.0"
   },
   "devDependencies": {
     "dart-sass": "^1.0.0-beta.2",
-    "preact": "^8.2.5",
+    "preact": "^10.0.0-alpha.0",
     "rollup": "^0.50.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "tslib": "^1.8.0",
     "tslint": "^5.7.0",
     "tslint-config-m18": "^1.6.2",
-    "typescript": "^2.5.3",
+    "typescript": "^3.3.3333",
     "uglify-js": "^3.1.3"
   },
   "dependencies": {

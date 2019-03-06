@@ -1,5 +1,5 @@
 import classJoin from 'classjoin';
-import {Component, ComponentProps, h} from 'preact';
+import { Component, ComponentChildren, h, PreactDOMAttributes } from 'preact';
 import {
 	getHandleCenterPosition,
 	getMousePosition,
@@ -44,13 +44,8 @@ export interface AbstractSliderProps
 	/** Triggered after slider changes stop (on mouse up, etc) */
 	onAfterChange( value: SliderValue ): void;
 	/** A function to format value on tooltip */
-	tipFormatter( value: number ): AnyJsxElement;
+	tipFormatter( value: number ): ComponentChildren;
 }
-
-/**
- * Any allowed JSX child.
- */
-export type AnyJsxElement = string | JSX.Element | Array<string | JSX.Element>;
 
 /**
  * Marks on the slider. The key determines the position, and the value
@@ -58,7 +53,7 @@ export type AnyJsxElement = string | JSX.Element | Array<string | JSX.Element>;
  */
 export interface SliderMarks
 {
-	[key: number]: AnyJsxElement;
+	[key: number]: ComponentChildren;
 }
 
 /**
@@ -129,7 +124,12 @@ abstract class AbstractSlider<
 	 * Reference to slider in DOM.
 	 */
 	protected sliderRef: Element | undefined;
-	
+
+	public static getDerivedStateFromProps = (
+		_props: Partial<AbstractSliderProps>, 
+		_state: AbstractSliderState,
+		): Partial<AbstractSliderState> => ({})
+
 	/**
 	 * Before component will be unmounted and destroyed.
 	 */
@@ -145,8 +145,8 @@ abstract class AbstractSlider<
 	 * @param handles Handles on slider.
 	 */
 	protected renderBase(
-		tracks: AnyJsxElement,
-		handles: AnyJsxElement,
+		tracks: ComponentChildren,
+		handles: ComponentChildren,
 	): JSX.Element
 	{
 		const {
@@ -161,7 +161,7 @@ abstract class AbstractSlider<
 			className,
 			classesPrefix,
 			children,
-		} = this.props as AbstractSliderProps & ComponentProps<AbstractSlider<TProps, TState>>;
+		} = this.props as AbstractSliderProps & PreactDOMAttributes; 
 		
 		const lowerBound = this.getLowerBound();
 		const upperBound = this.getUpperBound();
@@ -228,7 +228,7 @@ abstract class AbstractSlider<
 		index: number = 0,
 	): void =>
 	{
-		if ( component == null )
+		if ( component == null || component.base === undefined)
 		{
 			delete this.handlesRefs[index];
 		}
@@ -470,6 +470,7 @@ abstract class AbstractSlider<
 	{
 		this.removeDocumentEvents();
 		this.onEnd();
+		console.log('event end');
 		(this.props as AbstractSliderProps).onAfterChange( this.getValue() );
 	}
 	
@@ -513,5 +514,4 @@ export {
 	// AbstractSliderProps,
 	// AbstractSliderState,
 	// SliderMarks,
-	// AnyJsxElement,
 };

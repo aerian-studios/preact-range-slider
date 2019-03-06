@@ -60,6 +60,36 @@ function getPrecision( step: number ): number
 	return precision;
 }
 
+export function clampValueToSurroundingHandles(
+	value: number,
+	{allowCross}: {allowCross: boolean},
+	{handle, bounds}: {handle: number | null, bounds: number[]},
+): number
+{	
+	if (
+		!allowCross
+		&& ( handle != null )
+	)
+	{
+		if (
+			( handle > 0 )
+			&& ( value <= bounds[handle - 1] )
+		)
+		{
+			return bounds[handle - 1];
+		}
+		if (
+			( handle < (bounds.length - 1) )
+			&& ( value >= bounds[handle + 1] )
+		)
+		{
+			return bounds[handle + 1];
+		}
+	}
+	
+	return value;
+}
+
 /**
  * Properties required to align value.
  */

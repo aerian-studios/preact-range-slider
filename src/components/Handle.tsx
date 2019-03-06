@@ -1,5 +1,5 @@
 import classJoin from 'classjoin';
-import {Component, h} from 'preact';
+import {Component, ComponentChildren, h} from 'preact';
 
 /**
  * Component Properties.
@@ -25,7 +25,7 @@ export interface HandleProps
 	/** Prefix for class names */
 	classesPrefix: string;
 	/** Tip content */
-	children?: JSX.Element[];
+	children?: ComponentChildren;
 }
 
 /**

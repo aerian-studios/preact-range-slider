@@ -2,6 +2,7 @@ import {h} from 'preact';
 import {
 	alignValue,
 	clampValue,
+	clampValueToSurroundingHandles,
 	isValueOutOfRange,
 } from '../utils';
 import AbstractSlider, {
@@ -84,6 +85,61 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 	 * Cache of slider points.
 	 */
 	private pointsCache: PointsCache;
+
+	/**
+	 * When component recieve properties.
+	 */
+
+	public static getDerivedStateFromProps = ( 
+		nextProps: MultiSliderProps, 
+		prevState: MultiSliderState,
+	): Partial<MultiSliderState> => 	{
+		if (
+			!(
+				( 'value' in nextProps )
+				|| ( 'min' in nextProps )
+				|| ( 'max' in nextProps )
+			)
+		)
+		{
+			return {};
+		}
+		
+		const {bounds} = prevState;
+		const value = nextProps.value || bounds;
+		const nextBounds = value.map(
+			( singleValue ) =>  alignValue(
+				clampValueToSurroundingHandles(
+					clampValue( singleValue, nextProps ),
+					nextProps,
+					prevState,
+				),
+				nextProps,
+			) ,
+		);
+		
+		if (
+			( nextBounds.length === bounds.length )
+			&& nextBounds.every(
+				( singleValue, index ) => ( singleValue === bounds[index] ),
+			)
+		)
+		{
+			return {};
+		}
+		
+		if (
+			bounds.some(
+				( singleValue ) => isValueOutOfRange( singleValue, nextProps ),
+			)
+		)
+		{
+			nextProps.onChange( nextBounds );
+		}
+
+		return {bounds: nextBounds};
+
+	}
 	
 	/**
 	 * Slider with multiple handles.
@@ -117,51 +173,7 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 			bounds,
 		};
 	}
-	
-	/**
-	 * When component recieve properties.
-	 */
-	public componentWillReceiveProps( nextProps: MultiSliderProps ): void
-	{
-		if (
-			!(
-				( 'value' in nextProps )
-				|| ( 'min' in nextProps )
-				|| ( 'max' in nextProps )
-			)
-		)
-		{
-			return;
-		}
-		
-		const {bounds} = this.state;
-		const value = nextProps.value || bounds;
-		const nextBounds = value.map(
-			( singleValue ) => this.clampAlignValue( singleValue, nextProps ),
-		);
-		
-		if (
-			( nextBounds.length === bounds.length )
-			&& nextBounds.every(
-				( singleValue, index ) => ( singleValue === bounds[index] ),
-			)
-		)
-		{
-			return;
-		}
-		
-		this.setState( {bounds: nextBounds} );
-		
-		if (
-			bounds.some(
-				( singleValue ) => isValueOutOfRange( singleValue, nextProps ),
-			)
-		)
-		{
-			(this.props as MultiSliderProps).onChange( nextBounds );
-		}
-	}
-	
+
 	/**
 	 * Render component.
 	 */
@@ -254,11 +266,16 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 		const props = this.props as MultiSliderProps;
 		const isNotControlled = !('value' in props);
 		
+		const hasHandle = (
+			s: Partial<MultiSliderState>,
+		): s is Pick<MultiSliderState, 'handle'> =>
+			typeof s.handle !== 'undefined';
+		
 		if ( isNotControlled )
 		{
 			this.setState( state );
 		}
-		else if ( typeof state.handle !== 'undefined' )
+		else if ( hasHandle(state) )
 		{
 			this.setState( {handle: state.handle} );
 		}
@@ -607,33 +624,10 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 	 */
 	private clampValueToSurroundingHandles(
 		value: number,
-		{allowCross}: {allowCross: boolean},
+		props: {allowCross: boolean},
 	): number
 	{
-		const {handle, bounds} = this.state;
-		
-		if (
-			!allowCross
-			&& ( handle != null )
-		)
-		{
-			if (
-				( handle > 0 )
-				&& ( value <= bounds[handle - 1] )
-			)
-			{
-				return bounds[handle - 1];
-			}
-			if (
-				( handle < (bounds.length - 1) )
-				&& ( value >= bounds[handle + 1] )
-			)
-			{
-				return bounds[handle + 1];
-			}
-		}
-		
-		return value;
+		return clampValueToSurroundingHandles(value, props, this.state);
 	}
 	
 }

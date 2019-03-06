@@ -40,15 +40,58 @@ export interface SliderState extends AbstractSliderState
 /**
  * Slider with single handle.
  */
-class Slider extends AbstractSlider<Partial<SliderProps>, SliderState>
+class Slider extends AbstractSlider<SliderProps, SliderState>
 {
 	/**
 	 * Slider with single handle.
 	 */
+
+	/**
+	 * When component recieve properties.
+	 */
+	public static getDerivedStateFromProps = ( 
+		nextProps: SliderProps, 
+		prevState: SliderState,
+	): Partial<SliderState> => {
+
+		if (
+			!(
+				( 'value' in nextProps )
+				|| ( 'min' in nextProps )
+				|| ( 'max' in nextProps )
+			)
+		)
+		{
+			return {};
+		}
+		const prevValue = prevState.value;
+		const value = (
+			( nextProps.value == null )
+			? prevValue
+			: nextProps.value
+		);
+		const nextValue = alignValue(
+			clampValue( value, nextProps ),
+			nextProps,
+		);
+
+		console.log({prevValue, value, nextValue});
+		if ( nextValue === prevValue )
+		{
+			return {};
+		}
+				
+		if ( isValueOutOfRange( value, nextProps ) )
+		{
+			nextProps.onChange( nextValue );
+		}
+
+		return {value: nextValue};
+	}
+
 	public constructor( props: SliderProps )
 	{
 		super( props );
-		
 		const value = (
 			( props.value != null )
 			? props.value
@@ -64,44 +107,7 @@ class Slider extends AbstractSlider<Partial<SliderProps>, SliderState>
 			value: this.clampAlignValue( value ),
 		};
 	}
-	
-	/**
-	 * When component recieve properties.
-	 */
-	public componentWillReceiveProps( nextProps: SliderProps ): void
-	{
-		if (
-			!(
-				( 'value' in nextProps )
-				|| ( 'min' in nextProps )
-				|| ( 'max' in nextProps )
-			)
-		)
-		{
-			return;
-		}
-		
-		const prevValue = this.state.value;
-		const value = (
-			( nextProps.value == null )
-			? prevValue
-			: nextProps.value
-		);
-		const nextValue = this.clampAlignValue( value, nextProps );
-		
-		if ( nextValue === prevValue )
-		{
-			return;
-		}
-		
-		this.setState( {value: nextValue} );
-		
-		if ( isValueOutOfRange( value, nextProps ) )
-		{
-			(this.props as SliderProps).onChange( nextValue );
-		}
-	}
-	
+
 	/**
 	 * Render component.
 	 */
@@ -113,7 +119,6 @@ class Slider extends AbstractSlider<Partial<SliderProps>, SliderState>
 	): JSX.Element
 	{
 		const offset = this.calcOffset( value );
-		
 		const handle = (
 			<Handle
 				vertical={vertical}
@@ -180,14 +185,21 @@ class Slider extends AbstractSlider<Partial<SliderProps>, SliderState>
 	): void
 	{
 		const props = this.props as SliderProps;
-		const isNotControlled = !('value' in props);
-		
-		if ( isNotControlled )
+		const isControlled = ('value' in props);
+
+		const hasValue = (
+			s: Partial<SliderState>,
+		): s is Pick<SliderState, 'value'> =>
+			typeof s.value !== 'undefined';
+
+		if ( isControlled && hasValue(state))
 		{
-			this.setState( state );
+			props.onChange( state.value );
+
+			return;
 		}
-		
-		props.onChange( state.value );
+		this.setState( state, () => props.onChange( this.state.value ) );
+
 	}
 	
 	/**
@@ -198,7 +210,6 @@ class Slider extends AbstractSlider<Partial<SliderProps>, SliderState>
 		this.setState( {dragging: true} );
 		
 		const prevValue = this.getValue();
-		
 		(this.props as SliderProps).onBeforeChange( prevValue );
 		
 		const value = this.calcValueByPos( position );
