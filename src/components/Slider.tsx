@@ -75,7 +75,6 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 			nextProps,
 		);
 
-		console.log({prevValue, value, nextValue});
 		if ( nextValue === prevValue )
 		{
 			return {};

@@ -470,7 +470,6 @@ abstract class AbstractSlider<
 	{
 		this.removeDocumentEvents();
 		this.onEnd();
-		console.log('event end');
 		(this.props as AbstractSliderProps).onAfterChange( this.getValue() );
 	}
 	
