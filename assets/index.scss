@@ -3,3 +3,8 @@ div.range-slider
 	@import "mixin";
 	@include range-slider;
 }
+
+.slider-container {
+	height: 14px;
+	padding: 5px 0;
+}

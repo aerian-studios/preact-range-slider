@@ -45,6 +45,10 @@ export interface AbstractSliderProps
 	onAfterChange( value: SliderValue ): void;
 	/** A function to format value on tooltip */
 	tipFormatter( value: number ): ComponentChildren;
+	/** Minimum value to be displayed that the slider can not access */
+	minSeekable: number;
+	/** Maximum value to be displayed that the slider can not access */
+	maxSeekable: number;
 }
 
 /**
@@ -73,7 +77,7 @@ export interface AbstractSliderState
 /**
  * Buttons in MouseEvent.button.
  */
-const enum MouseButtons
+enum MouseButtons
 {
 	LEFT,
 	MIDDLE,
@@ -109,6 +113,8 @@ abstract class AbstractSlider<
 		onChange: noop,
 		onAfterChange: noop,
 		tipFormatter: String,
+		minSeekable: 0,
+		maxSeekable: 0,
 	};
 	
 	/**
@@ -161,6 +167,8 @@ abstract class AbstractSlider<
 			className,
 			classesPrefix,
 			children,
+			minSeekable,
+			maxSeekable,
 		} = this.props as AbstractSliderProps & PreactDOMAttributes; 
 		
 		const lowerBound = this.getLowerBound();
@@ -174,40 +182,53 @@ abstract class AbstractSlider<
 			},
 			[className],
 		);
+
+		const calcUnseekableSection = () => {
+			const calcPadding = () => {
+				// return proportional padding value 
+			};
+			const paddingRight = minSeekable ? calcPadding : '100px';
+			const paddingLeft = maxSeekable ? calcPadding : '100px';
+
+			return { padding: `0px, ${paddingRight}, 0px, ${paddingLeft}` };
+		};
 		
 		return (
-			<div
-				class={classes}
-				ref={this.saveSlider}
-				onTouchStart={disabled ? noop : this.onTouchStart}
-				onMouseDown={disabled ? noop : this.onMouseDown}
-			>
-				<div class={classesPrefix + 'rail'} />
-				{tracks}
-				<Steps
-					vertical={vertical}
-					marks={marks}
-					dots={dots}
-					step={step}
-					included={included}
-					lowerBound={lowerBound}
-					upperBound={upperBound}
-					max={max}
-					min={min}
-					classesPrefix={classesPrefix}
-				/>
-				{handles}
-				<Marks
-					vertical={vertical}
-					marks={marks}
-					included={included}
-					lowerBound={lowerBound}
-					upperBound={upperBound}
-					max={max}
-					min={min}
-					classesPrefix={classesPrefix}
-				/>
-				{children}
+			<div class={'slider-container'}>
+				<div
+					class={classes}
+					ref={this.saveSlider}
+					onTouchStart={disabled ? noop : this.onTouchStart}
+					onMouseDown={disabled ? noop : this.onMouseDown}
+					style={calcUnseekableSection()}
+				>
+					<div class={classesPrefix + 'rail'} />
+					{tracks}
+					<Steps
+						vertical={vertical}
+						marks={marks}
+						dots={dots}
+						step={step}
+						included={included}
+						lowerBound={lowerBound}
+						upperBound={upperBound}
+						max={max}
+						min={min}
+						classesPrefix={classesPrefix}
+					/>
+					{handles}
+					<Marks
+						vertical={vertical}
+						marks={marks}
+						included={included}
+						lowerBound={lowerBound}
+						upperBound={upperBound}
+						max={max}
+						min={min}
+						classesPrefix={classesPrefix}
+					/>
+					{children}
+				</div>
 			</div>
 		);
 	}
