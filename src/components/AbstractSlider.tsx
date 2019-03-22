@@ -46,9 +46,9 @@ export interface AbstractSliderProps
 	/** A function to format value on tooltip */
 	tipFormatter( value: number ): ComponentChildren;
 	/** Minimum value to be displayed that the slider can not access */
-	minSeekable: number;
+	minSeekable?: number;
 	/** Maximum value to be displayed that the slider can not access */
-	maxSeekable: number;
+	maxSeekable?: number;
 }
 
 /**
@@ -113,8 +113,8 @@ abstract class AbstractSlider<
 		onChange: noop,
 		onAfterChange: noop,
 		tipFormatter: String,
-		minSeekable: 0,
-		maxSeekable: 0,
+		minSeekable: undefined,
+		maxSeekable: undefined,
 	};
 	
 	/**
@@ -184,13 +184,13 @@ abstract class AbstractSlider<
 		);
 
 		const calcUnseekableSection = () => {
-			const calcPadding = () => {
-				// return proportional padding value 
-			};
-			const paddingRight = minSeekable ? calcPadding : '100px';
-			const paddingLeft = maxSeekable ? calcPadding : '100px';
+			// const calcPadding = () => {
+			// 	// return proportional padding value 
+			// };
+			const borderRight = minSeekable ? '80px' : '0';
+			const borderLeft = maxSeekable ? '80px' : '0';
 
-			return { padding: `0px, ${paddingRight}, 0px, ${paddingLeft}` };
+			return { borderWidth: `0 ${borderRight} 0 ${borderLeft}` };
 		};
 		
 		return (
