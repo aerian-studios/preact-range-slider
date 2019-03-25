@@ -45,9 +45,9 @@ export interface AbstractSliderProps
 	onAfterChange( value: SliderValue ): void;
 	/** A function to format value on tooltip */
 	tipFormatter( value: number ): ComponentChildren;
-	/** Minimum value to be displayed that the slider can not access */
+	/** Minimum seekable value on slider  */
 	minSeekable?: number;
-	/** Maximum value to be displayed that the slider can not access */
+	/** Maximum seekable value on slider */
 	maxSeekable?: number;
 }
 
