@@ -145,10 +145,10 @@ abstract class AbstractSlider<
 	}
 
 	private calcMinValue = (value: number, seekable?: number) => 
-		seekable && seekable >= value ? seekable : value;
+		seekable && seekable > value ? seekable : value;
 
 	private calcMaxValue = (value: number, seekable?: number) => 
-		seekable && seekable <= value ? seekable : value;
+		seekable && seekable < value ? seekable : value;
 	
 	/**
 	 * Render base markup of the component.
@@ -189,7 +189,7 @@ abstract class AbstractSlider<
 			[className],
 		);
 
-		const calcUnseekableSection = () => {
+		const unSeekableStyles = () => {
 			const marginLeft = minSeekable ? (minSeekable / max) * 100 : 0;
 			const marginRight = maxSeekable ? ((max - maxSeekable) / max) * 100  : 0;
 			const scrubberWidth = 100 - (marginRight + marginLeft);
@@ -210,7 +210,7 @@ abstract class AbstractSlider<
 					ref={this.saveSlider}
 					onTouchStart={disabled ? noop : this.onTouchStart}
 					onMouseDown={disabled ? noop : this.onMouseDown}
-					style={calcUnseekableSection()}
+					style={unSeekableStyles()}
 				>
 					<div class={classesPrefix + 'rail'} />
 					{tracks}
