@@ -143,6 +143,12 @@ abstract class AbstractSlider<
 	{
 		this.removeDocumentEvents();
 	}
+
+	private calcMinValue = (value: number, seekable?: number) => 
+		seekable && seekable >= value ? seekable : value;
+
+	private calcMaxValue = (value: number, seekable?: number) => 
+		seekable && seekable <= value ? seekable : value;
 	
 	/**
 	 * Render base markup of the component.
@@ -213,8 +219,8 @@ abstract class AbstractSlider<
 						included={included}
 						lowerBound={lowerBound}
 						upperBound={upperBound}
-						max={max}
-						min={min}
+						max={this.calcMaxValue(max, maxSeekable)}
+						min={this.calcMinValue(min, minSeekable)}
 						classesPrefix={classesPrefix}
 					/>
 					{handles}
@@ -224,8 +230,8 @@ abstract class AbstractSlider<
 						included={included}
 						lowerBound={lowerBound}
 						upperBound={upperBound}
-						max={max}
-						min={min}
+						max={this.calcMaxValue(max, maxSeekable)}
+						min={this.calcMinValue(min, minSeekable)}
 						classesPrefix={classesPrefix}
 					/>
 					{children}
@@ -299,21 +305,24 @@ abstract class AbstractSlider<
 			: slider.clientWidth
 		);
 	}
-	
+
 	/**
 	 * Calc slider value based on offset from slider element start.
 	 */
 	protected calcValue( offset: number ): number
 	{
-		const { vertical, min, max } = this.props as AbstractSliderProps;
+		const { vertical, min, max, minSeekable, maxSeekable } = this.props as AbstractSliderProps;
+		const minValue = this.calcMinValue(min, minSeekable);
+		const maxValue = this.calcMaxValue(max, maxSeekable);
 		const ratio = Math.abs( Math.max( offset, 0 ) / this.getSliderLength() );
+
 		const value = (
 			vertical
-			? ( (1 - ratio) * (max - min) + min )
-			: ( ratio * (max - min) + min )
+			? ( (1 - ratio) * (maxValue - minValue) + minValue )
+			: ( ratio * (maxValue - minValue) + minValue )
 		);
 		
-		return value;
+		return maxSeekable ? value <= maxSeekable ? value : maxSeekable : value;
 	}
 	
 	/**
@@ -334,8 +343,10 @@ abstract class AbstractSlider<
 	 */
 	protected calcOffset( value: number ): number
 	{
-		const { min, max } = this.props as AbstractSliderProps;
-		const ratio = (value - min) / (max - min);
+		const { min, max, minSeekable, maxSeekable } = this.props as AbstractSliderProps;
+		const minValue = this.calcMinValue(min, minSeekable);
+		const maxValue = this.calcMaxValue(max, maxSeekable);
+		const ratio = (value - minValue) / (maxValue - minValue);
 		
 		return ratio * 100;
 	}
