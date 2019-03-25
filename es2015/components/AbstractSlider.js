@@ -3,11 +3,21 @@ import { Component, h } from 'preact';
 import { getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, noop, } from '../utils';
 import Marks from './Marks';
 import Steps from './Steps';
+var MouseButtons;
+(function (MouseButtons) {
+    MouseButtons[MouseButtons["LEFT"] = 0] = "LEFT";
+    MouseButtons[MouseButtons["MIDDLE"] = 1] = "MIDDLE";
+    MouseButtons[MouseButtons["RIGHT"] = 2] = "RIGHT";
+    MouseButtons[MouseButtons["BACK"] = 3] = "BACK";
+    MouseButtons[MouseButtons["FORWARD"] = 4] = "FORWARD";
+})(MouseButtons || (MouseButtons = {}));
 class AbstractSlider extends Component {
     constructor() {
         super(...arguments);
         this.dragOffset = 0;
         this.handlesRefs = [];
+        this.calcMinValue = (value, seekable) => seekable && seekable > value ? seekable : value;
+        this.calcMaxValue = (value, seekable) => seekable && seekable < value ? seekable : value;
         this.saveSlider = (element) => {
             this.sliderRef = element;
         };
@@ -20,7 +30,7 @@ class AbstractSlider extends Component {
             }
         };
         this.onMouseDown = (event) => {
-            if (event.button !== 0) {
+            if (event.button !== MouseButtons.LEFT) {
                 return;
             }
             const vertical = this.props.vertical;
@@ -84,7 +94,7 @@ class AbstractSlider extends Component {
         this.removeDocumentEvents();
     }
     renderBase(tracks, handles) {
-        const { min, max, step, marks, dots, included, vertical, disabled, className, classesPrefix, children, } = this.props;
+        const { min, max, step, marks, dots, included, vertical, disabled, className, classesPrefix, children, minSeekable, maxSeekable, } = this.props;
         const lowerBound = this.getLowerBound();
         const upperBound = this.getUpperBound();
         const classes = classJoin({
@@ -92,13 +102,25 @@ class AbstractSlider extends Component {
             [classesPrefix + 'vertical']: vertical,
             [classesPrefix + 'disabled']: disabled,
         }, [className]);
-        return (h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown },
-            h("div", { class: classesPrefix + 'rail' }),
-            tracks,
-            h(Steps, { vertical: vertical, marks: marks, dots: dots, step: step, included: included, lowerBound: lowerBound, upperBound: upperBound, max: max, min: min, classesPrefix: classesPrefix }),
-            handles,
-            h(Marks, { vertical: vertical, marks: marks, included: included, lowerBound: lowerBound, upperBound: upperBound, max: max, min: min, classesPrefix: classesPrefix }),
-            children));
+        const unSeekableStyles = () => {
+            const marginLeft = minSeekable ? (minSeekable / max) * 100 : 0;
+            const marginRight = maxSeekable ? ((max - maxSeekable) / max) * 100 : 0;
+            const scrubberWidth = 100 - (marginRight + marginLeft);
+            return {
+                margin: `0 ${marginRight}% 0 ${marginLeft}%`,
+                width: `${scrubberWidth}%`,
+            };
+        };
+        const maxValue = this.calcMaxValue(max, maxSeekable);
+        const minValue = this.calcMinValue(min, minSeekable);
+        return (h("div", { class: 'slider-container' },
+            h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown, style: unSeekableStyles() },
+                h("div", { class: classesPrefix + 'rail' }),
+                tracks,
+                h(Steps, { vertical: vertical, marks: marks, dots: dots, step: step, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
+                handles,
+                h(Marks, { vertical: vertical, marks: marks, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
+                children)));
     }
     getSliderStart() {
         const slider = this.sliderRef;
@@ -120,12 +142,14 @@ class AbstractSlider extends Component {
             : slider.clientWidth);
     }
     calcValue(offset) {
-        const { vertical, min, max } = this.props;
+        const { vertical, min, max, minSeekable, maxSeekable } = this.props;
+        const minValue = this.calcMinValue(min, minSeekable);
+        const maxValue = this.calcMaxValue(max, maxSeekable);
         const ratio = Math.abs(Math.max(offset, 0) / this.getSliderLength());
         const value = (vertical
-            ? ((1 - ratio) * (max - min) + min)
-            : (ratio * (max - min) + min));
-        return value;
+            ? ((1 - ratio) * (maxValue - minValue) + minValue)
+            : (ratio * (maxValue - minValue) + minValue));
+        return maxSeekable ? value <= maxSeekable ? value : maxSeekable : value;
     }
     calcValueByPos(position) {
         const pixelOffset = position - this.getSliderStart();
@@ -133,8 +157,10 @@ class AbstractSlider extends Component {
         return nextValue;
     }
     calcOffset(value) {
-        const { min, max } = this.props;
-        const ratio = (value - min) / (max - min);
+        const { min, max, minSeekable, maxSeekable } = this.props;
+        const minValue = this.calcMinValue(min, minSeekable);
+        const maxValue = this.calcMaxValue(max, maxSeekable);
+        const ratio = (value - minValue) / (maxValue - minValue);
         return ratio * 100;
     }
     addDocumentMouseEvents() {
@@ -167,6 +193,8 @@ AbstractSlider.defaultProps = {
     onChange: noop,
     onAfterChange: noop,
     tipFormatter: String,
+    minSeekable: undefined,
+    maxSeekable: undefined,
 };
 AbstractSlider.getDerivedStateFromProps = (_props, _state) => ({});
 export { AbstractSlider as default, };

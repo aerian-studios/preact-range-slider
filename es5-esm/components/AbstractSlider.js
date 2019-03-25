@@ -4,12 +4,26 @@ import { Component, h } from 'preact';
 import { getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, noop, } from '../utils';
 import Marks from './Marks';
 import Steps from './Steps';
+var MouseButtons;
+(function (MouseButtons) {
+    MouseButtons[MouseButtons["LEFT"] = 0] = "LEFT";
+    MouseButtons[MouseButtons["MIDDLE"] = 1] = "MIDDLE";
+    MouseButtons[MouseButtons["RIGHT"] = 2] = "RIGHT";
+    MouseButtons[MouseButtons["BACK"] = 3] = "BACK";
+    MouseButtons[MouseButtons["FORWARD"] = 4] = "FORWARD";
+})(MouseButtons || (MouseButtons = {}));
 var AbstractSlider = (function (_super) {
     tslib_1.__extends(AbstractSlider, _super);
     function AbstractSlider() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.dragOffset = 0;
         _this.handlesRefs = [];
+        _this.calcMinValue = function (value, seekable) {
+            return seekable && seekable > value ? seekable : value;
+        };
+        _this.calcMaxValue = function (value, seekable) {
+            return seekable && seekable < value ? seekable : value;
+        };
         _this.saveSlider = function (element) {
             _this.sliderRef = element;
         };
@@ -23,7 +37,7 @@ var AbstractSlider = (function (_super) {
             }
         };
         _this.onMouseDown = function (event) {
-            if (event.button !== 0) {
+            if (event.button !== MouseButtons.LEFT) {
                 return;
             }
             var vertical = _this.props.vertical;
@@ -89,7 +103,7 @@ var AbstractSlider = (function (_super) {
     };
     AbstractSlider.prototype.renderBase = function (tracks, handles) {
         var _a;
-        var _b = this.props, min = _b.min, max = _b.max, step = _b.step, marks = _b.marks, dots = _b.dots, included = _b.included, vertical = _b.vertical, disabled = _b.disabled, className = _b.className, classesPrefix = _b.classesPrefix, children = _b.children;
+        var _b = this.props, min = _b.min, max = _b.max, step = _b.step, marks = _b.marks, dots = _b.dots, included = _b.included, vertical = _b.vertical, disabled = _b.disabled, className = _b.className, classesPrefix = _b.classesPrefix, children = _b.children, minSeekable = _b.minSeekable, maxSeekable = _b.maxSeekable;
         var lowerBound = this.getLowerBound();
         var upperBound = this.getUpperBound();
         var classes = classJoin((_a = {},
@@ -97,13 +111,25 @@ var AbstractSlider = (function (_super) {
             _a[classesPrefix + 'vertical'] = vertical,
             _a[classesPrefix + 'disabled'] = disabled,
             _a), [className]);
-        return (h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown },
-            h("div", { class: classesPrefix + 'rail' }),
-            tracks,
-            h(Steps, { vertical: vertical, marks: marks, dots: dots, step: step, included: included, lowerBound: lowerBound, upperBound: upperBound, max: max, min: min, classesPrefix: classesPrefix }),
-            handles,
-            h(Marks, { vertical: vertical, marks: marks, included: included, lowerBound: lowerBound, upperBound: upperBound, max: max, min: min, classesPrefix: classesPrefix }),
-            children));
+        var unSeekableStyles = function () {
+            var marginLeft = minSeekable ? (minSeekable / max) * 100 : 0;
+            var marginRight = maxSeekable ? ((max - maxSeekable) / max) * 100 : 0;
+            var scrubberWidth = 100 - (marginRight + marginLeft);
+            return {
+                margin: "0 " + marginRight + "% 0 " + marginLeft + "%",
+                width: scrubberWidth + "%",
+            };
+        };
+        var maxValue = this.calcMaxValue(max, maxSeekable);
+        var minValue = this.calcMinValue(min, minSeekable);
+        return (h("div", { class: 'slider-container' },
+            h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown, style: unSeekableStyles() },
+                h("div", { class: classesPrefix + 'rail' }),
+                tracks,
+                h(Steps, { vertical: vertical, marks: marks, dots: dots, step: step, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
+                handles,
+                h(Marks, { vertical: vertical, marks: marks, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
+                children)));
     };
     AbstractSlider.prototype.getSliderStart = function () {
         var slider = this.sliderRef;
@@ -125,12 +151,14 @@ var AbstractSlider = (function (_super) {
             : slider.clientWidth);
     };
     AbstractSlider.prototype.calcValue = function (offset) {
-        var _a = this.props, vertical = _a.vertical, min = _a.min, max = _a.max;
+        var _a = this.props, vertical = _a.vertical, min = _a.min, max = _a.max, minSeekable = _a.minSeekable, maxSeekable = _a.maxSeekable;
+        var minValue = this.calcMinValue(min, minSeekable);
+        var maxValue = this.calcMaxValue(max, maxSeekable);
         var ratio = Math.abs(Math.max(offset, 0) / this.getSliderLength());
         var value = (vertical
-            ? ((1 - ratio) * (max - min) + min)
-            : (ratio * (max - min) + min));
-        return value;
+            ? ((1 - ratio) * (maxValue - minValue) + minValue)
+            : (ratio * (maxValue - minValue) + minValue));
+        return maxSeekable ? value <= maxSeekable ? value : maxSeekable : value;
     };
     AbstractSlider.prototype.calcValueByPos = function (position) {
         var pixelOffset = position - this.getSliderStart();
@@ -138,8 +166,10 @@ var AbstractSlider = (function (_super) {
         return nextValue;
     };
     AbstractSlider.prototype.calcOffset = function (value) {
-        var _a = this.props, min = _a.min, max = _a.max;
-        var ratio = (value - min) / (max - min);
+        var _a = this.props, min = _a.min, max = _a.max, minSeekable = _a.minSeekable, maxSeekable = _a.maxSeekable;
+        var minValue = this.calcMinValue(min, minSeekable);
+        var maxValue = this.calcMaxValue(max, maxSeekable);
+        var ratio = (value - minValue) / (maxValue - minValue);
         return ratio * 100;
     };
     AbstractSlider.prototype.addDocumentMouseEvents = function () {
@@ -171,6 +201,8 @@ var AbstractSlider = (function (_super) {
         onChange: noop,
         onAfterChange: noop,
         tipFormatter: String,
+        minSeekable: undefined,
+        maxSeekable: undefined,
     };
     AbstractSlider.getDerivedStateFromProps = function (_props, _state) { return ({}); };
     return AbstractSlider;

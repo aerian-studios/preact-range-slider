@@ -14,6 +14,8 @@ export interface AbstractSliderProps {
     onChange(value: SliderValue): void;
     onAfterChange(value: SliderValue): void;
     tipFormatter(value: number): ComponentChildren;
+    minSeekable?: number;
+    maxSeekable?: number;
 }
 export interface SliderMarks {
     [key: number]: ComponentChildren;
@@ -28,6 +30,8 @@ declare abstract class AbstractSlider<TProps extends Partial<AbstractSliderProps
     protected sliderRef: Element | undefined;
     static getDerivedStateFromProps: (_props: Partial<AbstractSliderProps>, _state: AbstractSliderState) => Partial<AbstractSliderState>;
     componentWillUnmount(): void;
+    private calcMinValue;
+    private calcMaxValue;
     protected renderBase(tracks: ComponentChildren, handles: ComponentChildren): JSX.Element;
     protected saveSlider: (element: Element) => void;
     protected saveHandle: (component: Component<any, any> | null, index?: number) => void;
