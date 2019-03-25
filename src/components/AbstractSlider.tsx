@@ -184,13 +184,14 @@ abstract class AbstractSlider<
 		);
 
 		const calcUnseekableSection = () => {
-			// const calcPadding = () => {
-			// 	// return proportional padding value 
-			// };
-			const borderRight = minSeekable ? '80px' : '0';
-			const borderLeft = maxSeekable ? '80px' : '0';
+			const marginLeft = minSeekable ? (minSeekable / max) * 100 : 0;
+			const marginRight = maxSeekable ? ((max - maxSeekable) / max) * 100  : 0;
+			const scrubberWidth = 100 - (marginRight + marginLeft);
 
-			return { borderWidth: `0 ${borderRight} 0 ${borderLeft}` };
+			return { 
+				margin: `0 ${marginRight}% 0 ${marginLeft}%`,
+				width: `${scrubberWidth}%`,
+			};
 		};
 		
 		return (
