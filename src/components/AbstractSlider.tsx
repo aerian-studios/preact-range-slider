@@ -199,6 +199,9 @@ abstract class AbstractSlider<
 				width: `${scrubberWidth}%`,
 			};
 		};
+
+		const maxValue = this.calcMaxValue(max, maxSeekable);
+		const minValue = this.calcMinValue(min, minSeekable);
 		
 		return (
 			<div class={'slider-container'}>
@@ -219,8 +222,8 @@ abstract class AbstractSlider<
 						included={included}
 						lowerBound={lowerBound}
 						upperBound={upperBound}
-						max={this.calcMaxValue(max, maxSeekable)}
-						min={this.calcMinValue(min, minSeekable)}
+						max={maxValue}
+						min={minValue}
 						classesPrefix={classesPrefix}
 					/>
 					{handles}
@@ -230,8 +233,8 @@ abstract class AbstractSlider<
 						included={included}
 						lowerBound={lowerBound}
 						upperBound={upperBound}
-						max={this.calcMaxValue(max, maxSeekable)}
-						min={this.calcMinValue(min, minSeekable)}
+						max={maxValue}
+						min={minValue}
 						classesPrefix={classesPrefix}
 					/>
 					{children}
