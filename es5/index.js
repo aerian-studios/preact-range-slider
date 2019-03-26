@@ -316,10 +316,10 @@ var AbstractSlider = (function (_super) {
         var _b = this.props, min = _b.min, max = _b.max, step = _b.step, marks = _b.marks, dots = _b.dots, included = _b.included, vertical = _b.vertical, disabled = _b.disabled, className = _b.className, classesPrefix = _b.classesPrefix, children = _b.children, minSeekable = _b.minSeekable, maxSeekable = _b.maxSeekable;
         var lowerBound = this.getLowerBound();
         var upperBound = this.getUpperBound();
-        var classes = classJoin((_a = {}, _a[classesPrefix + 'with-marks'] = Object.keys(marks).length, _a[classesPrefix + 'vertical'] = vertical, _a[classesPrefix + 'disabled'] = disabled, _a), [className]);
+        var classes = classJoin((_a = {}, _a[classesPrefix + 'with-marks'] = Object.keys(marks).length, _a[classesPrefix + 'vertical'] = vertical, _a[classesPrefix + 'disabled'] = disabled, _a[classesPrefix + 'minSeekable'] = minSeekable && (minSeekable > min), _a[classesPrefix + 'maxSeekable'] = maxSeekable && (maxSeekable < max), _a), [className]);
         var unSeekableStyles = function () {
-            var marginLeft = minSeekable ? (minSeekable / max) * 100 : 0;
-            var marginRight = maxSeekable ? ((max - maxSeekable) / max) * 100 : 0;
+            var marginLeft = minSeekable && (minSeekable > min) ? (minSeekable / max) * 100 : 0;
+            var marginRight = maxSeekable && (maxSeekable < max) ? ((max - maxSeekable) / max) * 100 : 0;
             var scrubberWidth = 100 - (marginRight + marginLeft);
             return {
                 margin: "0 " + marginRight + "% 0 " + marginLeft + "%",
