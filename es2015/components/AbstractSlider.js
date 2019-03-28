@@ -105,8 +105,8 @@ class AbstractSlider extends Component {
             [classesPrefix + 'maxSeekable']: maxSeekable && (maxSeekable < max),
         }, [className]);
         const unSeekableStyles = () => {
-            const marginLeft = minSeekable && (minSeekable > min) ? (minSeekable / max) * 100 : 0;
-            const marginRight = maxSeekable && (maxSeekable < max) ? ((max - maxSeekable) / max) * 100 : 0;
+            const marginLeft = minSeekable && (minSeekable > min) ? ((minSeekable - min) / (max - min)) * 100 : 0;
+            const marginRight = maxSeekable && (maxSeekable < max) ? ((max - maxSeekable) / (max - min)) * 100 : 0;
             const scrubberWidth = 100 - (marginRight + marginLeft);
             return {
                 margin: `0 ${marginRight}% 0 ${marginLeft}%`,

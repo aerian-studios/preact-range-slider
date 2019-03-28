@@ -318,8 +318,8 @@ var AbstractSlider = (function (_super) {
         var upperBound = this.getUpperBound();
         var classes = classJoin((_a = {}, _a[classesPrefix + 'with-marks'] = Object.keys(marks).length, _a[classesPrefix + 'vertical'] = vertical, _a[classesPrefix + 'disabled'] = disabled, _a[classesPrefix + 'minSeekable'] = minSeekable && (minSeekable > min), _a[classesPrefix + 'maxSeekable'] = maxSeekable && (maxSeekable < max), _a), [className]);
         var unSeekableStyles = function () {
-            var marginLeft = minSeekable && (minSeekable > min) ? (minSeekable / max) * 100 : 0;
-            var marginRight = maxSeekable && (maxSeekable < max) ? ((max - maxSeekable) / max) * 100 : 0;
+            var marginLeft = minSeekable && (minSeekable > min) ? ((minSeekable - min) / (max - min)) * 100 : 0;
+            var marginRight = maxSeekable && (maxSeekable < max) ? ((max - maxSeekable) / (max - min)) * 100 : 0;
             var scrubberWidth = 100 - (marginRight + marginLeft);
             return {
                 margin: "0 " + marginRight + "% 0 " + marginLeft + "%",
