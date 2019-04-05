@@ -1,6 +1,7 @@
 import classJoin from 'classjoin';
 import { Component, ComponentChildren, h, PreactDOMAttributes } from 'preact';
 import {
+	formatTime,
 	getHandleCenterPosition,
 	getMousePosition,
 	getTouchPosition,
@@ -37,6 +38,10 @@ export interface AbstractSliderProps
 	className: string;
 	/** Prefix for secondary class names in component */
 	classesPrefix: string;
+	/** Minimum seekable value on slider  */
+	minSeekable?: number;
+	/** Maximum seekable value on slider */
+	maxSeekable?: number;
 	/** Triggered before value is start to change (on mouse down, etc) */
 	onBeforeChange( value: SliderValue ): void;
 	/** Triggered while the value of Slider changing */
@@ -45,10 +50,6 @@ export interface AbstractSliderProps
 	onAfterChange( value: SliderValue ): void;
 	/** A function to format value on tooltip */
 	tipFormatter( value: number ): ComponentChildren;
-	/** Minimum seekable value on slider  */
-	minSeekable?: number;
-	/** Maximum seekable value on slider */
-	maxSeekable?: number;
 }
 
 /**
@@ -71,7 +72,14 @@ export type SliderValue = number | number[];
 // tslint:disable-next-line:no-empty-interface
 export interface AbstractSliderState
 {
-	// Empty
+	/** Handler is being dragged */
+	dragging: boolean;
+	/** State value */
+	value: number;
+	/** Display tooltip */
+	toolTipDisplay: boolean;
+	/** Tooltip number */
+	toolTipValue: number;
 }
 
 /**
@@ -142,13 +150,8 @@ abstract class AbstractSlider<
 	public componentWillUnmount(): void
 	{
 		this.removeDocumentEvents();
+		this.removeElementEvents();
 	}
-
-	private calcMinValue = (value: number, seekable?: number) => 
-		seekable && seekable > value ? seekable : value;
-
-	private calcMaxValue = (value: number, seekable?: number) => 
-		seekable && seekable < value ? seekable : value;
 	
 	/**
 	 * Render base markup of the component.
@@ -212,6 +215,8 @@ abstract class AbstractSlider<
 					ref={this.saveSlider}
 					onTouchStart={disabled ? noop : this.onTouchStart}
 					onMouseDown={disabled ? noop : this.onMouseDown}
+					onMouseMove={disabled ? noop : this.onSliderMouseMove}
+					onMouseLeave={disabled ? noop : this.onSliderMouseLeave}
 					style={unSeekableStyles()}
 				>
 					<div class={classesPrefix + 'rail'} />
@@ -240,6 +245,13 @@ abstract class AbstractSlider<
 						classesPrefix={classesPrefix}
 					/>
 					{children}
+					{ this.state.toolTipDisplay &&
+						<div class="tip"
+							style={{left: `${this.calcOffset( this.state.toolTipValue )}%`}} >
+							{formatTime(this.state.toolTipValue | 0)}
+							{this.props.children}
+						</div>
+					}
 				</div>
 			</div>
 		);
@@ -380,6 +392,10 @@ abstract class AbstractSlider<
 	 */
 	protected abstract onMove( position: number ): void;
 	/**
+	 * Update tool tip value on hover.
+	 */
+	protected abstract onHover( position: number ): void;
+	/**
 	 * On mouse/touch end.
 	 */
 	protected abstract onEnd(): void;
@@ -395,6 +411,12 @@ abstract class AbstractSlider<
 	 * Get upper bound of current interval.
 	 */
 	protected abstract getUpperBound(): number;
+
+	private calcMinValue = (value: number, seekable?: number) => 
+		seekable && seekable > value ? seekable : value
+
+	private calcMaxValue = (value: number, seekable?: number) => 
+		seekable && seekable < value ? seekable : value
 	
 	/**
 	 * Start mouse event.
@@ -428,7 +450,7 @@ abstract class AbstractSlider<
 		this.addDocumentMouseEvents();
 		killEvent( event );
 	}
-	
+
 	/**
 	 * Start touch event.
 	 */
@@ -463,9 +485,9 @@ abstract class AbstractSlider<
 	}
 	
 	/**
-	 * Mouse moving.
+	 * Mouse moving on document, used when dragging handler.
 	 */
-	private onMouseMove = ( event: MouseEvent ): void =>
+	private onDocumentMouseMove = ( event: MouseEvent ): void =>
 	{
 		if ( !this.sliderRef )
 		{
@@ -479,7 +501,32 @@ abstract class AbstractSlider<
 		this.onMove( position - this.dragOffset );
 		killEvent( event );
 	}
+
+	/**
+	 * Mouse moving on slider when not dragging handler.
+	 */
+	private onSliderMouseMove = ( event: MouseEvent ): void =>
+	{
+		if ( !this.sliderRef )
+		{
+			this.onEnd();
+			
+			return;
+		}
+		
+		// tslint:disable-next-line:no-non-null-assertion
+		const position = getMousePosition( this.props.vertical!, event );
+		this.onHover( position - this.dragOffset );
+
+		killEvent( event );
+	}
 	
+	private onSliderMouseLeave = (): void => {
+		this.setState({
+			toolTipDisplay: this.state.dragging,
+		});	
+	}
+
 	/**
 	 * Touch moving.
 	 */
@@ -516,7 +563,7 @@ abstract class AbstractSlider<
 	 */
 	private addDocumentMouseEvents(): void
 	{
-		document.addEventListener( 'mousemove', this.onMouseMove );
+		document.addEventListener( 'mousemove', this.onDocumentMouseMove );
 		document.addEventListener( 'mouseup', this.onEventEnd );
 	}
 	
@@ -534,11 +581,23 @@ abstract class AbstractSlider<
 	 */
 	private removeDocumentEvents(): void
 	{
-		document.removeEventListener( 'mousemove', this.onMouseMove );
+		document.removeEventListener( 'mousemove', this.onDocumentMouseMove );
 		document.removeEventListener( 'mouseup', this.onEventEnd );
-		
 		document.removeEventListener( 'touchmove', this.onTouchMove );
 		document.removeEventListener( 'touchend', this.onEventEnd );
+	}
+
+	/**
+	 * Remove mouse and touch events from the slider.
+	 */
+	private removeElementEvents(): void {
+		const slider = this.sliderRef;
+		if (slider) {
+			slider.removeEventListener( 'touchstart', this.onTouchStart );
+			slider.removeEventListener( 'mousedown', this.onMouseDown );
+			slider.removeEventListener( 'mousemove', this.onSliderMouseMove );
+			slider.removeEventListener( 'mouseleave', this.onSliderMouseLeave );
+		}
 	}
 	
 }

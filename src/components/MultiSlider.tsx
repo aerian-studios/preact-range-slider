@@ -171,6 +171,10 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 			handle: null,
 			recent,
 			bounds,
+			dragging: false,
+			value: 0,
+			toolTipDisplay: false,
+			toolTipValue: 0,
 		};
 	}
 
@@ -320,6 +324,15 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 		this.onChange( {bounds: nextBounds} );
 	}
 	
+	protected onHover( position: number ): void {
+		const value = this.calcValueByPos( position );
+
+		this.setState({
+			toolTipValue: value,
+			toolTipDisplay: false,
+		});
+	}
+
 	/**
 	 * On mouse/touch move.
 	 */

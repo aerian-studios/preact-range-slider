@@ -33,8 +33,6 @@ export interface SliderProps extends AbstractSliderProps
  */
 export interface SliderState extends AbstractSliderState
 {
-	dragging: boolean;
-	value: number;
 }
 
 /**
@@ -104,6 +102,8 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 		this.state = {
 			dragging: false,
 			value: this.clampAlignValue( value ),
+			toolTipDisplay: false,
+			toolTipValue: this.clampAlignValue( value ),
 		};
 	}
 
@@ -158,7 +158,7 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 	{
 		return this.state.value;
 	}
-	
+
 	/**
 	 * Get lower bound of current interval.
 	 */
@@ -198,7 +198,6 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 			return;
 		}
 		this.setState( state, () => props.onChange( this.state.value ) );
-
 	}
 	
 	/**
@@ -217,6 +216,11 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 		{
 			return;
 		}
+
+		this.setState({
+			toolTipDisplay: true,
+			toolTipValue: value,
+		});
 		
 		this.onChange( {value} );
 	}
@@ -233,8 +237,36 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 		{
 			return;
 		}
+
+		this.setState({
+			toolTipDisplay: true,
+			toolTipValue: value,
+		});
 		
 		this.onChange( {value} );
+	}
+	
+	/**
+	 * On mouse/touch move.
+	 */
+	protected onHover( position: number ): void
+	{
+		const value = this.calcValueByPos( position );
+		const oldValue = this.state.value;
+		
+		if ( value === oldValue )
+		{
+			return;
+		}
+
+		this.setState({
+			toolTipDisplay: true,
+			toolTipValue: value,
+		});
+
+		if (this.state.dragging) {
+			this.onChange( {value} );
+		}
 	}
 	
 	/**
@@ -242,7 +274,10 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 	 */
 	protected onEnd(): void
 	{
-		this.setState( {dragging: false} );
+		this.setState({
+			toolTipDisplay: false,
+			dragging: false,
+		});
 	}
 	
 	/**
