@@ -183,7 +183,7 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 	 */
 	public render(
 		{
-			min, max, vertical, included, disabled, classesPrefix, tipFormatter,
+			min, max, vertical, included, disabled, classesPrefix,
 		}: MultiSliderProps,
 		{handle, bounds}: MultiSliderState,
 	): JSX.Element
@@ -206,9 +206,7 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 					classesPrefix={classesPrefix}
 					ref={( component ) => this.saveHandle( component, index )}
 					key={`handle-${index}`}
-				>
-					{tipFormatter( value )}
-				</Handle>
+				/>
 			),
 		);
 		

@@ -112,7 +112,7 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 	 */
 	public render(
 		{
-			min, max, vertical, included, disabled, classesPrefix, tipFormatter,
+			min, max, vertical, included, disabled, classesPrefix,
 		}: SliderProps,
 		{value, dragging}: SliderState,
 	): JSX.Element
@@ -131,9 +131,7 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 				classesPrefix={classesPrefix}
 				ref={this.saveHandle}
 				key={'handle-0'}
-			>
-				{tipFormatter( value )}
-			</Handle>
+			/>
 		);
 		
 		const track = (

@@ -1,5 +1,5 @@
 import classJoin from 'classjoin';
-import {Component, ComponentChildren, h} from 'preact';
+import {Component, h} from 'preact';
 
 /**
  * Component Properties.
@@ -24,8 +24,6 @@ export interface HandleProps
 	offset: number;
 	/** Prefix for class names */
 	classesPrefix: string;
-	/** Tip content */
-	children?: ComponentChildren;
 }
 
 /**
@@ -52,7 +50,7 @@ class Handle extends Component<HandleProps, HandleState>
 	public render(
 		{
 			min, max, value, vertical, disabled, dragging, index, offset,
-			classesPrefix, children,
+			classesPrefix,
 		}: HandleProps,
 	): JSX.Element
 	{
@@ -93,11 +91,7 @@ class Handle extends Component<HandleProps, HandleState>
 				aria-valuemax={max}
 				aria-valuenow={value}
 				ref={this.saveElement}
-			>
-				<span class={classesPrefix + 'tip'}>
-					{children}
-				</span>
-			</div>
+			/>
 		);
 	}
 	

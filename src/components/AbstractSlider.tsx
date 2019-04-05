@@ -246,11 +246,10 @@ abstract class AbstractSlider<
 					/>
 					{children}
 					{ this.state.toolTipDisplay &&
-						<div class="tip"
+						<span class={classesPrefix + 'tip'}
 							style={{left: `${this.calcOffset( this.state.toolTipValue )}%`}} >
 							{formatTime(this.state.toolTipValue | 0)}
-							{this.props.children}
-						</div>
+						</span>
 					}
 				</div>
 			</div>
