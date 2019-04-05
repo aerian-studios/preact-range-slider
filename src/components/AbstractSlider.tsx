@@ -244,13 +244,14 @@ abstract class AbstractSlider<
 						min={minValue}
 						classesPrefix={classesPrefix}
 					/>
-					{children}
-					{ this.state.toolTipDisplay &&
-						<span class={classesPrefix + 'tip'}
-							style={{left: `${this.calcOffset( this.state.toolTipValue )}%`}} >
-							{formatTime(this.state.toolTipValue | 0)}
-						</span>
-					}
+					{children}	
+					<span class={`${classesPrefix}tip
+						${classesPrefix}tip-dragging-${this.state.dragging}
+						${classesPrefix}tip-display-${true}`}
+						style={{left: `${this.calcOffset( this.state.toolTipValue )}%`}} >
+						{formatTime(this.state.toolTipValue | 0)}
+						{ !this.state.dragging && <span className="tip-indicator" /> }
+					</span>
 				</div>
 			</div>
 		);
