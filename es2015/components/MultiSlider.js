@@ -21,11 +21,15 @@ class MultiSlider extends AbstractSlider {
             handle: null,
             recent,
             bounds,
+            dragging: false,
+            value: 0,
+            toolTipDisplay: false,
+            toolTipValue: 0,
         };
     }
-    render({ min, max, vertical, included, disabled, classesPrefix, tipFormatter, }, { handle, bounds }) {
+    render({ min, max, vertical, included, disabled, classesPrefix, }, { handle, bounds }) {
         const offsets = bounds.map((value) => this.calcOffset(value));
-        const handles = bounds.map((value, index) => (h(Handle, { vertical: vertical, disabled: disabled, dragging: handle === index, min: min, max: max, value: value, index: index + 1, offset: offsets[index], classesPrefix: classesPrefix, ref: (component) => this.saveHandle(component, index), key: `handle-${index}` }, tipFormatter(value))));
+        const handles = bounds.map((value, index) => (h(Handle, { vertical: vertical, disabled: disabled, dragging: handle === index, min: min, max: max, value: value, index: index + 1, offset: offsets[index], classesPrefix: classesPrefix, ref: (component) => this.saveHandle(component, index), key: `handle-${index}` })));
         const tracks = bounds.slice(0, -1).map((_value, index) => {
             const nextIndex = index + 1;
             return (h(Track, { vertical: vertical, included: included, index: nextIndex, offset: offsets[index], length: offsets[nextIndex] - offsets[index], classesPrefix: classesPrefix, key: `track-${index}` }));
@@ -74,6 +78,13 @@ class MultiSlider extends AbstractSlider {
         const nextBounds = [...state.bounds];
         nextBounds[boundNeedMoving] = value;
         this.onChange({ bounds: nextBounds });
+    }
+    onHover(position) {
+        const value = this.calcValueByPos(position);
+        this.setState({
+            toolTipValue: value,
+            toolTipDisplay: false,
+        });
     }
     onMove(position) {
         const props = this.props;

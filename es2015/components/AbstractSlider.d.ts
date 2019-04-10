@@ -10,18 +10,22 @@ export interface AbstractSliderProps {
     disabled: boolean;
     className: string;
     classesPrefix: string;
+    minSeekable?: number;
+    maxSeekable?: number;
     onBeforeChange(value: SliderValue): void;
     onChange(value: SliderValue): void;
     onAfterChange(value: SliderValue): void;
     tipFormatter(value: number): ComponentChildren;
-    minSeekable?: number;
-    maxSeekable?: number;
 }
 export interface SliderMarks {
     [key: number]: ComponentChildren;
 }
 export declare type SliderValue = number | number[];
 export interface AbstractSliderState {
+    dragging: boolean;
+    value: number;
+    toolTipDisplay: boolean;
+    toolTipValue: number;
 }
 declare abstract class AbstractSlider<TProps extends Partial<AbstractSliderProps>, TState extends AbstractSliderState> extends Component<TProps, TState> {
     static defaultProps: Readonly<AbstractSliderProps>;
@@ -30,8 +34,6 @@ declare abstract class AbstractSlider<TProps extends Partial<AbstractSliderProps
     protected sliderRef: Element | undefined;
     static getDerivedStateFromProps: (_props: Partial<AbstractSliderProps>, _state: AbstractSliderState) => Partial<AbstractSliderState>;
     componentWillUnmount(): void;
-    private calcMinValue;
-    private calcMaxValue;
     protected renderBase(tracks: ComponentChildren, handles: ComponentChildren): JSX.Element;
     protected saveSlider: (element: Element) => void;
     protected saveHandle: (component: Component<any, any> | null, index?: number) => void;
@@ -44,17 +46,23 @@ declare abstract class AbstractSlider<TProps extends Partial<AbstractSliderProps
     protected abstract onChange<TKey extends keyof TState>(state: Pick<TState, TKey>): void;
     protected abstract onStart(position: number): void;
     protected abstract onMove(position: number): void;
+    protected abstract onHover(position: number): void;
     protected abstract onEnd(): void;
     protected abstract getValue(): SliderValue;
     protected abstract getLowerBound(): number;
     protected abstract getUpperBound(): number;
+    private calcMinValue;
+    private calcMaxValue;
     private onMouseDown;
     private onTouchStart;
-    private onMouseMove;
+    private onDocumentMouseMove;
+    private onSliderMouseMove;
+    private onSliderMouseLeave;
     private onTouchMove;
     private onEventEnd;
     private addDocumentMouseEvents;
     private addDocumentTouchEvents;
     private removeDocumentEvents;
+    private removeElementEvents;
 }
 export { AbstractSlider as default, };

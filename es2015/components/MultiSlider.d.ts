@@ -24,12 +24,13 @@ declare class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, Mult
     private pointsCache;
     static getDerivedStateFromProps: (nextProps: MultiSliderProps, prevState: MultiSliderState) => Partial<MultiSliderState>;
     constructor(props: MultiSliderProps);
-    render({ min, max, vertical, included, disabled, classesPrefix, tipFormatter, }: MultiSliderProps, { handle, bounds }: MultiSliderState): JSX.Element;
+    render({ min, max, vertical, included, disabled, classesPrefix, }: MultiSliderProps, { handle, bounds }: MultiSliderState): JSX.Element;
     protected getValue(): number[];
     protected getLowerBound(): number;
     protected getUpperBound(): number;
     protected onChange<TKey extends keyof MultiSliderState>(state: Pick<MultiSliderState, TKey>): void;
     protected onStart(position: number): void;
+    protected onHover(position: number): void;
     protected onMove(position: number): void;
     protected onEnd(): void;
     protected clampAlignValue(value: number, nextProps?: Partial<MultiSliderProps>): number;

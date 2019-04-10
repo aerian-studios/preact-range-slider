@@ -7,7 +7,7 @@ class Handle extends Component {
             this.elementRef = element;
         };
     }
-    render({ min, max, value, vertical, disabled, dragging, index, offset, classesPrefix, children, }) {
+    render({ min, max, value, vertical, disabled, dragging, index, offset, classesPrefix, }) {
         const style = (vertical
             ? {
                 bottom: offset + '%',
@@ -24,8 +24,7 @@ class Handle extends Component {
             classesPrefix + 'handle',
             `${classesPrefix}handle-${index}`,
         ]);
-        return (h("div", { class: classes, style: style, role: "slider", tabIndex: disabled ? undefined : 0, "aria-orientation": vertical ? 'vertical' : 'horizontal', "aria-disabled": String(disabled), "aria-valuemin": min, "aria-valuemax": max, "aria-valuenow": value, ref: this.saveElement },
-            h("span", { class: classesPrefix + 'tip' }, children)));
+        return (h("div", { class: classes, style: style, role: "slider", tabIndex: disabled ? undefined : 0, "aria-orientation": vertical ? 'vertical' : 'horizontal', "aria-disabled": String(disabled), "aria-valuemin": min, "aria-valuemax": max, "aria-valuenow": value, ref: this.saveElement }));
     }
 }
 export { Handle as default, };

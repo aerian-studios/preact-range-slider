@@ -1,6 +1,6 @@
 import classJoin from 'classjoin';
 import { Component, h } from 'preact';
-import { getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, noop, } from '../utils';
+import { formatTime, getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, noop, } from '../utils';
 import Marks from './Marks';
 import Steps from './Steps';
 var MouseButtons;
@@ -16,8 +16,6 @@ class AbstractSlider extends Component {
         super(...arguments);
         this.dragOffset = 0;
         this.handlesRefs = [];
-        this.calcMinValue = (value, seekable) => seekable && seekable > value ? seekable : value;
-        this.calcMaxValue = (value, seekable) => seekable && seekable < value ? seekable : value;
         this.saveSlider = (element) => {
             this.sliderRef = element;
         };
@@ -29,6 +27,8 @@ class AbstractSlider extends Component {
                 this.handlesRefs[index] = component.base;
             }
         };
+        this.calcMinValue = (value, seekable) => seekable && seekable > value ? seekable : value;
+        this.calcMaxValue = (value, seekable) => seekable && seekable < value ? seekable : value;
         this.onMouseDown = (event) => {
             if (event.button !== MouseButtons.LEFT) {
                 return;
@@ -65,7 +65,7 @@ class AbstractSlider extends Component {
             this.addDocumentTouchEvents();
             killEvent(event);
         };
-        this.onMouseMove = (event) => {
+        this.onDocumentMouseMove = (event) => {
             if (!this.sliderRef) {
                 this.onEnd();
                 return;
@@ -73,6 +73,20 @@ class AbstractSlider extends Component {
             const position = getMousePosition(this.props.vertical, event);
             this.onMove(position - this.dragOffset);
             killEvent(event);
+        };
+        this.onSliderMouseMove = (event) => {
+            if (!this.sliderRef) {
+                this.onEnd();
+                return;
+            }
+            const position = getMousePosition(this.props.vertical, event);
+            this.onHover(position - this.dragOffset);
+            killEvent(event);
+        };
+        this.onSliderMouseLeave = () => {
+            this.setState({
+                toolTipDisplay: this.state.dragging,
+            });
         };
         this.onTouchMove = (event) => {
             if (!this.sliderRef
@@ -92,6 +106,7 @@ class AbstractSlider extends Component {
     }
     componentWillUnmount() {
         this.removeDocumentEvents();
+        this.removeElementEvents();
     }
     renderBase(tracks, handles) {
         const { min, max, step, marks, dots, included, vertical, disabled, className, classesPrefix, children, minSeekable, maxSeekable, } = this.props;
@@ -116,13 +131,19 @@ class AbstractSlider extends Component {
         const maxValue = this.calcMaxValue(max, maxSeekable);
         const minValue = this.calcMinValue(min, minSeekable);
         return (h("div", { class: 'slider-container' },
-            h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown, style: unSeekableStyles() },
+            h("div", { class: classes, ref: this.saveSlider, onTouchStart: disabled ? noop : this.onTouchStart, onMouseDown: disabled ? noop : this.onMouseDown, onMouseMove: disabled ? noop : this.onSliderMouseMove, onMouseLeave: disabled ? noop : this.onSliderMouseLeave, style: unSeekableStyles() },
                 h("div", { class: classesPrefix + 'rail' }),
                 tracks,
                 h(Steps, { vertical: vertical, marks: marks, dots: dots, step: step, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
                 handles,
                 h(Marks, { vertical: vertical, marks: marks, included: included, lowerBound: lowerBound, upperBound: upperBound, max: maxValue, min: minValue, classesPrefix: classesPrefix }),
-                children)));
+                children,
+                this.state.toolTipDisplay &&
+                    h("span", { class: `${classesPrefix}tip
+							${classesPrefix}tip-dragging-${this.state.dragging}
+							${classesPrefix}tip-display-${true}`, style: { left: `${this.calcOffset(this.state.toolTipValue)}%` } },
+                        formatTime(this.state.toolTipValue | 0),
+                        !this.state.dragging && h("span", { className: "tip-indicator" })))));
     }
     getSliderStart() {
         const slider = this.sliderRef;
@@ -166,7 +187,7 @@ class AbstractSlider extends Component {
         return ratio * 100;
     }
     addDocumentMouseEvents() {
-        document.addEventListener('mousemove', this.onMouseMove);
+        document.addEventListener('mousemove', this.onDocumentMouseMove);
         document.addEventListener('mouseup', this.onEventEnd);
     }
     addDocumentTouchEvents() {
@@ -174,10 +195,19 @@ class AbstractSlider extends Component {
         document.addEventListener('touchend', this.onEventEnd);
     }
     removeDocumentEvents() {
-        document.removeEventListener('mousemove', this.onMouseMove);
+        document.removeEventListener('mousemove', this.onDocumentMouseMove);
         document.removeEventListener('mouseup', this.onEventEnd);
         document.removeEventListener('touchmove', this.onTouchMove);
         document.removeEventListener('touchend', this.onEventEnd);
+    }
+    removeElementEvents() {
+        const slider = this.sliderRef;
+        if (slider) {
+            slider.removeEventListener('touchstart', this.onTouchStart);
+            slider.removeEventListener('mousedown', this.onMouseDown);
+            slider.removeEventListener('mousemove', this.onSliderMouseMove);
+            slider.removeEventListener('mouseleave', this.onSliderMouseLeave);
+        }
     }
 }
 AbstractSlider.defaultProps = {

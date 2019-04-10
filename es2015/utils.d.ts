@@ -27,3 +27,5 @@ declare function isEventFromHandle(event: Event, handles: Element[]): boolean;
 declare function isNotCorrectTouchEvent(event: TouchEvent): boolean;
 declare function killEvent(event: Event): void;
 export { noop, clampValue, isValueOutOfRange, alignValue, getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, };
+export declare const zeroPad: (num: number) => string;
+export declare const formatTime: (seconds: number) => string;

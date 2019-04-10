@@ -80,4 +80,33 @@ function killEvent(event) {
     event.preventDefault();
 }
 export { noop, clampValue, isValueOutOfRange, alignValue, getHandleCenterPosition, getMousePosition, getTouchPosition, isEventFromHandle, isNotCorrectTouchEvent, killEvent, };
+const ONEHOUR = 3600;
+export const zeroPad = (num) => num >= 100 ? `${Math.floor(num)}` : `00${Math.floor(num)}`.slice(-2);
+export const formatTime = (seconds) => {
+    if (isNaN(seconds) || seconds === Infinity) {
+        return '';
+    }
+    if (seconds > 604800) {
+        const date = new Date(seconds * 1000);
+        return (zeroPad(date.getHours()) +
+            ':' +
+            zeroPad(date.getMinutes()) +
+            ':' +
+            zeroPad(date.getSeconds()));
+    }
+    let sign = '';
+    if (seconds < 0) {
+        seconds = Math.abs(seconds);
+        sign = '-';
+    }
+    if (seconds < ONEHOUR) {
+        return sign + zeroPad(seconds / 60) + ':' + zeroPad(seconds % 60);
+    }
+    const formatted = Math.floor(seconds / ONEHOUR) +
+        ':' +
+        zeroPad((seconds % ONEHOUR) / 60) +
+        ':' +
+        zeroPad(seconds % 60);
+    return `${sign}${formatted}`;
+};
 //# sourceMappingURL=utils.js.map
