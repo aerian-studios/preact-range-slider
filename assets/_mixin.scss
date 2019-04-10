@@ -279,7 +279,7 @@
 		transition-timing-function: ease-out;
 	}
 
-	> span.#{$prefix}tip.#{$prefix}tip-dragging-false .tip-indicator
+	> span.#{$prefix}tip.#{$prefix}tip-dragging-true .tip-indicator
 	{
 		display: none;
 	}
@@ -289,9 +289,9 @@
 		display: block;
 		position: absolute;
 		width: 2px;
-		height: 4px;
+		height: 6px;
 		z-index: 5;
 		left: calc(50% - 1px);
-		bottom: -10px;
+		bottom: -12px;
 	}
 }
