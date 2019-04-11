@@ -139,10 +139,10 @@ abstract class AbstractSlider<
 	 */
 	protected sliderRef: Element | undefined;
 
-	public static getDerivedStateFromProps = (
-		_props: Partial<AbstractSliderProps>, 
-		_state: AbstractSliderState,
-		): Partial<AbstractSliderState> => ({})
+	public static getDerivedStateFromProps = <P, S>(
+		_props: Partial<P>, 
+		_state: S,
+		): Partial<S> => ({})
 
 	/**
 	 * Before component will be unmounted and destroyed.

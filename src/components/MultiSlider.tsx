@@ -90,10 +90,10 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 	 * When component recieve properties.
 	 */
 
-	public static getDerivedStateFromProps = ( 
-		nextProps: MultiSliderProps, 
-		prevState: MultiSliderState,
-	): Partial<MultiSliderState> => 	{
+	public static getDerivedStateFromProps = <P, S>( 
+		nextProps: P, 
+		prevState: S,
+	): Partial<S> => 	{
 		if (
 			!(
 				( 'value' in nextProps )
@@ -104,17 +104,20 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 		{
 			return {};
 		}
-		
-		const {bounds} = prevState;
-		const value = nextProps.value || bounds;
+
+		const props = nextProps as unknown as MultiSliderProps
+		const state = prevState as unknown as MultiSliderState;
+
+		const {bounds} = state;
+		const value = props.value || bounds;
 		const nextBounds = value.map(
 			( singleValue ) =>  alignValue(
 				clampValueToSurroundingHandles(
-					clampValue( singleValue, nextProps ),
-					nextProps,
-					prevState,
+					clampValue( singleValue, props ),
+					props,
+					state,
 				),
-				nextProps,
+				props,
 			) ,
 		);
 		
@@ -130,14 +133,14 @@ class MultiSlider extends AbstractSlider<Partial<MultiSliderProps>, MultiSliderS
 		
 		if (
 			bounds.some(
-				( singleValue ) => isValueOutOfRange( singleValue, nextProps ),
+				( singleValue ) => isValueOutOfRange( singleValue, props ),
 			)
 		)
 		{
-			nextProps.onChange( nextBounds );
+			props.onChange( nextBounds );
 		}
 
-		return {bounds: nextBounds};
+		return {bounds: nextBounds} as unknown as Partial<S>;
 
 	}
 	

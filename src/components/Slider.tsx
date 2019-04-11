@@ -47,10 +47,12 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 	/**
 	 * When component recieve properties.
 	 */
-	public static getDerivedStateFromProps = ( 
-		nextProps: SliderProps, 
-		prevState: SliderState,
-	): Partial<SliderState> => {
+	public static getDerivedStateFromProps = <P, S>( 
+		props: P, 
+		state: S,
+	): Partial<S> => {
+		const nextProps = props as unknown as SliderProps;
+		const prevState = state as unknown as SliderState;
 
 		if (
 			!(
@@ -83,7 +85,7 @@ class Slider extends AbstractSlider<SliderProps, SliderState>
 			nextProps.onChange( nextValue );
 		}
 
-		return {value: nextValue};
+		return {value: nextValue} as unknown as Partial<S>;
 	}
 
 	public constructor( props: SliderProps )
