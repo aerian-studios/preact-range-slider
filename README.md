@@ -2,12 +2,12 @@
 [![Dependencies][deps]][deps-url]
 [![DevDependencies][deps-dev]][deps-dev-url]
 
-# preact-range-slider
+# @aerian/preact-range-slider
 
 Preact component for input values with range slider
 
 Based on `rc-slider` for React, with a lot of changes (so, this component is not
-compatible with original).
+compatible with original). Fork of [preact-range-slider](https://www.npmjs.com/package/preact-range-slider)
 
 Written in TypeScript, types are also included.
 
